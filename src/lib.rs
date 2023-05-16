@@ -1,9 +1,9 @@
 pub struct Table<'a> {
     str_arr: &'a Vec<Vec<String>>,
-    table_str: String,
     num_columns: usize,
     num_rows: usize,
     column_width: Vec<usize>,
+    num_chars: usize
 }
 
 impl<'a> Table<'a> {
@@ -30,94 +30,96 @@ impl<'a> Table<'a> {
         let num_chars: usize = table_width * (num_rows + num_lines);
 
         Table {
-            str_arr: str_arr,
-            num_rows: num_rows,
-            num_columns: num_columns,
-            table_str: String::with_capacity(num_chars),
-            column_width: column_width
+            str_arr,
+            num_rows,
+            num_columns,
+            column_width,
+            num_chars
         }
     }
 
-    pub fn to_string(&mut self) -> &str {
+    pub fn to_string(&mut self) -> String {
         let padding_len: usize = 3;
         let border: &str = "|";
         let edge: &str = "+";
         let line: &str = "-";
         let space: &str = " ";
         let newline: &str = "\n";
+        let mut table_str: String = String::with_capacity(self.num_chars);
+
 
         // top border
-        self.table_str += edge;
+        table_str += edge;
         for col in 0..self.num_columns {
             for _ in 0..self.column_width[col] + padding_len - 1 {
-                self.table_str += line;
+                table_str += line;
             }
-            self.table_str += edge;
+            table_str += edge;
         }
-        self.table_str += newline;
+        table_str += newline;
 
         // column headers
-        self.table_str += border;
-        self.table_str += space;
+        table_str += border;
+        table_str += space;
         for col in 0..self.num_columns {
-            self.table_str += &self.str_arr[0][col];
+            table_str += &self.str_arr[0][col];
             let str_len: usize = self.str_arr[0][col].len();
             for _ in str_len..self.column_width[col] {
-                self.table_str += space;
+                table_str += space;
             }
             // add separators
             if col != self.num_columns - 1 {
-                self.table_str += space;
-                self.table_str += border;
-                self.table_str += space;
+                table_str += space;
+                table_str += border;
+                table_str += space;
             }
         }
-        self.table_str += space;
-        self.table_str += border;
-        self.table_str += newline;
+        table_str += space;
+        table_str += border;
+        table_str += newline;
 
         // middle line
-        self.table_str += edge;
+        table_str += edge;
         for col in 0..self.num_columns {
             for _ in 0..self.column_width[col] + padding_len - 1 {
-                self.table_str += line;
+                table_str += line;
             }
-            self.table_str += edge;
+            table_str += edge;
         }
 
         // values
-        self.table_str += newline;
+        table_str += newline;
         for row in 1..self.num_rows {
-            self.table_str += border;
-            self.table_str += space;
+            table_str += border;
+            table_str += space;
             for col in 0..self.num_columns {
-                self.table_str += &self.str_arr[row][col];
+                table_str += &self.str_arr[row][col];
                 // add padding
                 let str_len: usize = self.str_arr[row][col].len();
                 for _ in str_len..self.column_width[col] {
-                    self.table_str += space;
+                    table_str += space;
                 }
                 // add seperator
                 if col != self.num_columns - 1 {
-                    self.table_str += space;
-                    self.table_str += border;
-                    self.table_str += space;
+                    table_str += space;
+                    table_str += border;
+                    table_str += space;
                 }
             }
-            self.table_str += space;
-            self.table_str += border;
-            self.table_str += newline;
+            table_str += space;
+            table_str += border;
+            table_str += newline;
         }
 
         // bottom border
-        self.table_str += edge;
+        table_str += edge;
         for col in 0..self.num_columns {
             for _ in 0..self.column_width[col] + padding_len - 1 {
-                self.table_str += line;
+                table_str += line;
             }
-            self.table_str += edge;
+            table_str += edge;
         }
 
-        &self.table_str
+        table_str
     }
 }

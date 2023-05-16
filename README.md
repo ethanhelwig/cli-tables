@@ -29,7 +29,7 @@ let table_arr: Vec<Vec<String>> = vec![
 4. Create a `Table` struct from the data:
 
 ```rust
-let mut table = Table::new(&data);
+let mut table = Table::new(&table_arr);
 ```
 
 5. Generate the ASCII table as a string using the `to_string()` method:

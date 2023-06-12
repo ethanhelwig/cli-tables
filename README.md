@@ -14,45 +14,56 @@ cli-tables = "0.1.0"
 use cli_tables::Table;
 ```
 
-3. Create a `Vec<Vec<String>>` of data that you want to display in a table:
+3. Create a new `Table`:
 
 ```rust
-let table_arr: Vec<Vec<String>> = vec![
-    vec!["#".to_string(), "First Name".to_string(), "Last Name".to_string(), "Date of Birth".to_string(), "TV Show".to_string()],
-    vec!["0".to_string(), "Pedro".to_string(), "Pascal".to_string(), "1996-07-28".to_string(), "The Last of Us".to_string()],
-    vec!["1".to_string(), "Belle".to_string(), "Ramsey".to_string(), "1991-09-17".to_string(), "The Last of Us".to_string()],
-    vec!["3".to_string(), "Scott".to_string(), "Shepherd".to_string(), "1990-04-20".to_string(), "The Last of Us".to_string()],
-    vec!["4".to_string(), "Nick".to_string(), "Offerman".to_string(), "1970-06-26".to_string(), "The Last of Us".to_string()]
-];
+let mut table = Table::new();
 ```
 
-4. Create a `Table` struct from the data:
+4. Create a row `Vec<&str>` of data that you want to display in the table:
 
 ```rust
-let mut table = Table::new(&table_arr);
+let header = vec!["Id", "Title", "Series", "Author"]; // vector of string slices
+let book = vec!["0", "Sword of Destiny", "The Witcher Series", "Andrzej Sapkowski"];
 ```
 
-5. Generate the ASCII table as a string using the `to_string()` method:
+5. Add rows with the `push_row` function:
 
 ```rust
-let table_str = table.to_string();
+table.push_row(&header);
+table.push_row(&book);
 ```
 
-6. Print the table string to the console:
+6. Print the table with the `to_string` function to the interface:
 
 ```rust
-println!("{}", table_str);
+println!("{}", table.to_string());
 ```
 
 7. The table will look like this:
 
 ```
-+---+------------+-----------+---------------+----------------+
-| # | First Name | Last Name | Date of Birth | TV Show        |
-+---+------------+-----------+---------------+----------------+
-| 0 | Pedro      | Pascal    | 1996-07-28    | The Last of Us |
-| 1 | Belle      | Ramsey    | 1991-09-17    | The Last of Us |
-| 3 | Scott      | Shepherd  | 1990-04-20    | The Last of Us |
-| 4 | Nick       | Offerman  | 1970-06-26    | The Last of Us |
-+---+------------+-----------+---------------+----------------+
++----+------------------+--------------------+-------------------+----------------------------------------------------------+
+| Id | Title            | Series             | Author            | Description                                              |
++----+------------------+--------------------+-------------------+----------------------------------------------------------+
+| 0  | Sword of Destiny | The Witcher Series | Andrzej Sapkowski | "The Sword of Destiny" is a collection of short stories  |
+|    |                  |                    |                   | that continue the adventures of Geralt of Rivia, a       |
+|    |                  |                    |                   | professional monster hunter known as a Witcher. The      |
+|    |                  |                    |                   | book explores Geralt's encounters with various creatures | 
+|    |                  |                    |                   | and individuals, delving into his moral choices and the  |
+|    |                  |                    |                   | consequences they bring. The stories in "The Sword of    |
+|    |                  |                    |                   | Destiny" provide further character development for       |
+|    |                  |                    |                   | Geralt and introduce important characters like Ciri, a   |
+|    |                  |                    |                   | young princess with a significant role in the series.    |
+| 1  | The Last Wish    | The Witcher Series | Andrzej Sapkowski | "The Last Wish" is also a collection of short stories    |
+|    |                  |                    |                   | featuring Geralt of Rivia. It serves as an introduction  |
+|    |                  |                    |                   | to the world and characters of "The Witcher." The book   |
+|    |                  |                    |                   | follows Geralt as he takes on contracts to hunt down     |
+|    |                  |                    |                   | monsters while navigating political intrigues and moral  |
+|    |                  |                    |                   | dilemmas. "The Last Wish" delves into Geralt's origins,  |
+|    |                  |                    |                   | his relationships, and his encounters with various       |
+|    |                  |                    |                   | mythical creatures. It sets the stage for the ongoing    |
+|    |                  |                    |                   | saga of Geralt and his involvement in the complex world  |
+|    |                  |                    |                   | of monsters, magic, and politics.                        |
++----+------------------+--------------------+-------------------+----------------------------------------------------------+
 ```

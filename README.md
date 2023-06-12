@@ -30,7 +30,6 @@ let header = vec!["#", "First Name", "Last Name", "Date of Birth", "TV Show"];
 
 ```rust
 table.push_row(&header);
-table.push_row(&book);
 ```
 
 6. Print the table with the `to_string` function to the interface:

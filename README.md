@@ -1,5 +1,5 @@
 ## CLI Tables
-This is a simple Rust library for generating ASCII tables in a CLI application. The `Table` struct takes in a `Vec<Vec<String>>` of data and generates an ASCII table from it.
+This is a simple Rust library for generating ASCII tables in a CLI application.
 
 ### Usage
 1. Add `cli-tables` to your `Cargo.toml` file:

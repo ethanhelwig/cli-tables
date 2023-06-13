@@ -71,12 +71,12 @@ impl Table {
     /// let mut table = Table::new();
     ///
     /// let header = vec!["Id", "Title", "Series", "Author"];
-    /// table.push_row_str(&header).unwrap();
+    /// table.push_row(&header).unwrap();
     /// 
     /// let book = vec!["0", "Sword of Destiny", "The Witcher Series", "Andrzej Sapkowski"];
-    /// table.push_row_str(&book).unwrap();
+    /// table.push_row(&book).unwrap();
     /// ```
-    pub fn push_row_str(&mut self, new_record: &Vec<&str>) -> Result<(), TableError> {
+    pub fn push_row(&mut self, new_record: &Vec<&str>) -> Result<(), TableError> {
         let new_record: Vec<String> = new_record.iter().map(|&field| field.to_string()).collect();
         let num_fields = new_record.len();
 
@@ -121,7 +121,7 @@ impl Table {
     ///     "Series".to_string(), 
     ///     "Author".to_string()
     /// ];
-    /// table.push_row_str(&header).unwrap();
+    /// table.push_row_string(&header).unwrap();
     /// 
     /// let book = vec![
     ///     "0".to_string(), 
@@ -129,7 +129,7 @@ impl Table {
     ///     "The Witcher Series".to_string(), 
     ///     "Andrzej Sapkowski".to_string()
     /// ];
-    /// table.push_row_str(&book).unwrap();
+    /// table.push_row_string(&book).unwrap();
     /// ```
     pub fn push_row_string(&mut self, new_record: &Vec<String>) -> Result<(), TableError> {
         let num_fields = new_record.len();
@@ -154,6 +154,65 @@ impl Table {
     }
 
     /// ### Description
+    /// The `push_rows` function takes multiple records, and adds each one 
+    /// in order to the `Table` object.
+    ///
+    /// ### Arguments
+    /// * `new_records` - reference to a `Vec<Vec<&str>>` object that
+    /// represents multiple records.
+    ///
+    /// ### Errors
+    /// Returns a `TableError` if the number of fields is not equal
+    /// for each record or if the number of fields is not equal to
+    /// the existing number of fields in the `Table` object.
+    ///
+    /// ### Example
+    /// ```
+    /// use cli_tables::Table;
+    /// 
+    /// let mut table = Table::new();
+    ///
+    /// let table_vec = vec![
+    ///     vec!["Id", "Title", "Series", "Author"],
+    ///     vec!["0", "Sword of Destiny", "The Witcher Series", "Andrzej Sapkowski"],
+    ///     vec!["1", "The Last Wish", "The Witcher Series", "Andrzej Sapkowski"]
+    /// ];
+    /// table.push_rows(&table_vec).unwrap();
+    /// ```
+    pub fn push_rows(&mut self, new_records: &Vec<Vec<&str>>) -> Result<(), TableError> {
+        let num_records = new_records.len();
+        let num_fields = new_records[0].len();
+        for record in 1..num_records {
+            if new_records[record].len() != num_fields {
+                return Err(TableError {
+                    message: "Records have an unequal number of fields".to_string() 
+                })
+            }
+        }
+        if !self.table_vec.is_empty() {
+            if num_fields != self.num_fields {
+                return Err(TableError {
+                    message: format!(
+                        "Invalid number of fields in records. Found {}, but expected {}.", 
+                        num_fields, 
+                        self.num_fields
+                    )
+                })
+            }
+        } else {
+            self.num_records = num_records;
+            self.num_fields = num_fields;
+        }
+        for record in 0..self.num_records {
+            self.table_vec.push(Vec::new());
+            for field in 0..self.num_fields {
+                self.table_vec[record].push(new_records[record][field].to_string());
+            }
+        }
+        Ok(())
+    }
+
+    /// ### Description
     /// Retrieves the desired record of the `Table` object and returns it.
     ///
     /// ### Arguments
@@ -169,12 +228,12 @@ impl Table {
     /// let mut table = Table::new();
     ///
     /// let header = vec![
-    ///     "Id".to_string(), 
-    ///     "Title".to_string(), 
-    ///     "Series".to_string(), 
-    ///     "Author".to_string()
+    ///     "Id",
+    ///     "Title",
+    ///     "Series",
+    ///     "Author"
     /// ];
-    /// table.push_row_str(&header).unwrap();
+    /// table.push_row(&header).unwrap();
     /// 
     /// table.get_row(0).unwrap();
     /// ```
@@ -206,12 +265,12 @@ impl Table {
     /// let mut table = Table::new();
     ///
     /// let header = vec![
-    ///     "Id".to_string(), 
-    ///     "Title".to_string(), 
-    ///     "Series".to_string(), 
-    ///     "Author".to_string()
+    ///     "Id",
+    ///     "Title",
+    ///     "Series",
+    ///     "Author"
     /// ];
-    /// table.push_row_str(&header).unwrap();
+    /// table.push_row(&header).unwrap();
     /// 
     /// table.delete_record(0).unwrap();
     /// ```

@@ -1,6 +1,6 @@
 [package]
 name = "cli-tables"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "A simple Rust library for generating ASCII tables in a CLI application."
 readme = "README.md"

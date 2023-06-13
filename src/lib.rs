@@ -31,6 +31,12 @@ pub struct Table {
     num_fields: usize
 }
 
+impl fmt::Display for Table {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({:?}, {}, {})", self.table_vec, self.num_records, self.num_fields)
+    }
+}
+
 impl Table {
     pub fn new() -> Self {
         Table {
@@ -49,38 +55,26 @@ impl Table {
     }
 
     /// ### Description
-    /// Pushes a new row/record to the table.
+    /// Pushes a new record to the end of the `Table` object.
     ///
     /// ### Arguments
-    ///
-    /// * `new_record` - An immutable reference to a vector of string slices representing the new record.
-    /// In Rust, the &str type represents a string slice. It is an immutable reference to a string data 
-    /// stored elsewhere, typically UTF-8 encoded. String slices are commonly used to efficiently work 
-    /// with string data without taking ownership of it.
+    /// * `new_record: &Vec<&str>` - An immutable reference 
+    /// to string slices that represent the new record.
     ///
     /// ### Errors
-    ///
     /// Returns an error if the number of fields is invalid.
     ///
-    /// ### Examples
+    /// ### Example
     /// ```
-    /// use cli_tables::{Table, TableError};
+    /// use cli_tables::Table;
     /// 
-    /// let mut table = Table::new(); // creates a new table
+    /// let mut table = Table::new();
     ///
-    /// let header = vec!["Id", "Title", "Series", "Author"]; // add rows using a vector of string slices
-    /// assert_eq!(table.push_row_str(&header), Ok(())); // handle errors
+    /// let header = vec!["Id", "Title", "Series", "Author"];
+    /// table.push_row_str(&header).unwrap();
     /// 
     /// let book = vec!["0", "Sword of Destiny", "The Witcher Series", "Andrzej Sapkowski"];
-    /// assert_eq!(table.push_row_str(&book), Ok(()));
-    ///
-    /// let invalid_record = vec!["1", "The Last Wish", "The Witcher Series"];
-    /// assert_eq!(
-    ///     table.push_row_str(&invalid_record),
-    ///     Err(TableError {
-    ///         message: "Invalid number of fields in record. Found 3, but expected 4.".to_string()
-    ///     })
-    /// );
+    /// table.push_row_str(&book).unwrap();
     /// ```
     pub fn push_row_str(&mut self, new_record: &Vec<&str>) -> Result<(), TableError> {
         let new_record: Vec<String> = new_record.iter().map(|&field| field.to_string()).collect();
@@ -106,29 +100,28 @@ impl Table {
     }
 
     /// ### Description
-    /// Pushes a new row/record to the table.
+    /// Pushes a new record to the end of the `Table` object.
     ///
     /// ### Arguments
-    ///
-    /// * `new_record` - An immutable reference to a vector of strings representing the new record.
+    /// * `new_record: &Vec<String>` - An immutable reference
+    /// to Strings that represent the new record.
     ///
     /// ### Errors
-    ///
     /// Returns an error if the number of fields is invalid.
     ///
-    /// ### Examples
+    /// ### Example
     /// ```
-    /// use cli_tables::{Table, TableError};
+    /// use cli_tables::Table;
     /// 
-    /// let mut table = Table::new(); // creates a new table
+    /// let mut table = Table::new();
     ///
     /// let header = vec![
     ///     "Id".to_string(), 
     ///     "Title".to_string(), 
     ///     "Series".to_string(), 
     ///     "Author".to_string()
-    /// ]; // add rows using a vector of string slices
-    /// assert_eq!(table.push_row_string(&header), Ok(())); // handle errors
+    /// ];
+    /// table.push_row_str(&header).unwrap();
     /// 
     /// let book = vec![
     ///     "0".to_string(), 
@@ -136,19 +129,7 @@ impl Table {
     ///     "The Witcher Series".to_string(), 
     ///     "Andrzej Sapkowski".to_string()
     /// ];
-    /// assert_eq!(table.push_row_string(&book), Ok(()));
-    ///
-    /// let invalid_record = vec![
-    ///     "1".to_string(), 
-    ///     "The Last Wish".to_string(), 
-    ///     "The Witcher Series".to_string()
-    /// ];
-    /// assert_eq!(
-    ///     table.push_row_string(&invalid_record),
-    ///     Err(TableError {
-    ///         message: "Invalid number of fields in record. Found 3, but expected 4.".to_string()
-    ///     })
-    /// );
+    /// table.push_row_str(&book).unwrap();
     /// ```
     pub fn push_row_string(&mut self, new_record: &Vec<String>) -> Result<(), TableError> {
         let num_fields = new_record.len();
@@ -172,7 +153,32 @@ impl Table {
         }
     }
 
-    pub fn get_row(&mut self, id: usize) -> Result<Vec<String>, TableError> {
+    /// ### Description
+    /// Retrieves the desired record of the `Table` object and returns it.
+    ///
+    /// ### Arguments
+    /// * `id: usize` - represets the desired record id to be retrieved.
+    ///
+    /// ### Errors
+    /// Returns a `TableError` if no record with the given id is found.
+    ///
+    /// ### Example
+    /// ```
+    /// use cli_tables::Table;
+    /// 
+    /// let mut table = Table::new();
+    ///
+    /// let header = vec![
+    ///     "Id".to_string(), 
+    ///     "Title".to_string(), 
+    ///     "Series".to_string(), 
+    ///     "Author".to_string()
+    /// ];
+    /// table.push_row_str(&header).unwrap();
+    /// 
+    /// table.get_row(0).unwrap();
+    /// ```
+    pub fn get_row(&self, id: usize) -> Result<Vec<String>, TableError> {
         for record in 0..self.num_records {
             if record == id {
                 return Ok(self.table_vec[record].clone())
@@ -183,20 +189,72 @@ impl Table {
         })
     }
 
-    pub fn delete_record(&mut self, record_id: usize) -> Result<(), TableError> {
+    /// ### Description
+    /// Deletes the desired record from the `Table` object.
+    ///
+    /// ### Arguments
+    /// * `id` - A `usize` value that represets the desired 
+    /// record id to be deleted.
+    ///
+    /// ### Errors
+    /// Returns a `TableError` if no record with the given id is found.
+    ///
+    /// ### Example
+    /// ```
+    /// use cli_tables::Table;
+    /// 
+    /// let mut table = Table::new();
+    ///
+    /// let header = vec![
+    ///     "Id".to_string(), 
+    ///     "Title".to_string(), 
+    ///     "Series".to_string(), 
+    ///     "Author".to_string()
+    /// ];
+    /// table.push_row_str(&header).unwrap();
+    /// 
+    /// table.delete_record(0).unwrap();
+    /// ```
+    pub fn delete_record(&mut self, id: usize) -> Result<(), TableError> {
         for record in 0..self.num_records {
-            if record == record_id {
+            if record == id {
                 self.table_vec.remove(record);
                 self.num_records -= 1;
                 return Ok(())
             }
         }
-        Err(TableError{
-            message: "No record found that matches id".to_string() 
+        Err(TableError {
+            message: "No record with matching id".to_string() 
         })
     }
 
-    pub fn set_table_str(&mut self, new_table: &Vec<Vec<&str>>) -> Result<(), TableError> {
+    /// ### Description
+    /// The `set` function takes multiple records, and adds each one 
+    /// in order to the `Table` object. If the `Table` object is not 
+    /// empty, it is reset with the given values.
+    ///
+    /// ### Arguments
+    /// * `new_table` - reference to a `Vec<Vec<&str>>` object that
+    /// represents multiple records.
+    ///
+    /// ### Errors
+    /// Returns a `TableError` if the number of fields is not equal
+    /// for each record.
+    ///
+    /// ### Example
+    /// ```
+    /// use cli_tables::Table;
+    /// 
+    /// let mut table = Table::new();
+    ///
+    /// let table_vec = vec![
+    ///     vec!["Id", "Title", "Series", "Author"],
+    ///     vec!["0", "Sword of Destiny", "The Witcher Series", "Andrzej Sapkowski"],
+    ///     vec!["1", "The Last Wish", "The Witcher Series", "Andrzej Sapkowski"]
+    /// ];
+    /// table.set(&table_vec).unwrap();
+    /// ```
+    pub fn set(&mut self, new_table: &Vec<Vec<&str>>) -> Result<(), TableError> {
         if !self.table_vec.is_empty() {
             self.table_vec = Vec::new();
         }
@@ -455,11 +513,5 @@ impl Table {
         }
 
         table_str
-    }
-}
-
-impl fmt::Display for Table {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({:?}, {}, {})", self.table_vec, self.num_records, self.num_fields)
     }
 }

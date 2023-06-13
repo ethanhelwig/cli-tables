@@ -18,7 +18,7 @@ mod tests {
             "Diagnostician", 
             "Princeton-Plainsboro Teaching Hospital"
         ];
-        assert_eq!(table.push_row_str(&record), Ok(()));
+        assert_eq!(table.push_row(&record), Ok(()));
         assert_eq!(table.num_records(), 1);
         assert_eq!(table.num_fields(), 3);
         assert_eq!(
@@ -35,13 +35,13 @@ mod tests {
             "Diagnostician", 
             "Princeton-Plainsboro Teaching Hospital"
         ];
-        assert_eq!(table.push_row_str(&record), Ok(()));
+        assert_eq!(table.push_row(&record), Ok(()));
         let record = vec![
             "Dr. Lisa Cuddy",
             "Dean of Medicine"
         ];
         assert_eq!(
-            table.push_row_str(&record), 
+            table.push_row(&record), 
             Err(TableError {
                 message: "Invalid number of fields in record. Found 2, but expected 3.".to_string() 
             })
@@ -66,7 +66,7 @@ mod tests {
         let mut table = Table::new();
         let record = vec!["a"; 100];
         for _ in 0..100 {
-            assert_eq!(table.push_row_str(&record), Ok(()));
+            assert_eq!(table.push_row(&record), Ok(()));
         }
         assert_eq!(table.num_records(), 100);
         assert_eq!(table.num_fields(), 100);
@@ -79,7 +79,7 @@ mod tests {
         for _ in 0..100 {
             record.push("a");
         }
-        assert_eq!(table.push_row_str(&record), Ok(()));
+        assert_eq!(table.push_row(&record), Ok(()));
         assert_eq!(table.num_records(), 1);
         assert_eq!(table.num_fields(), 100);
     }
@@ -88,7 +88,7 @@ mod tests {
     fn test_delete_record() {
         let mut table = Table::new();
         let record = vec!["value1", "value2"];
-        assert_eq!(table.push_row_str(&record), Ok(()));
+        assert_eq!(table.push_row(&record), Ok(()));
         let record = vec!["value3".to_string(), "value4".to_string()];
         assert_eq!(table.push_row_string(&record), Ok(()));
         assert_eq!(table.delete_record(0), Ok(()));
@@ -104,10 +104,30 @@ mod tests {
             vec!["value1", "value2"],
             vec!["value3", "value4"]
         ];
-        let expected_num_fields = 2;
         let expected_num_records = 2;
-        assert_eq!(table.set_table_str(&table_str), Ok(()));
-        assert_eq!(table.num_fields(), expected_num_fields);
+        let expected_num_fields = 2;
+        assert_eq!(table.set(&table_str), Ok(()));
         assert_eq!(table.num_records(), expected_num_records);
+        assert_eq!(table.num_fields(), expected_num_fields);
+    }
+
+    #[test]
+    fn test_push_rows() {
+        let mut table = Table::new();
+        let records = vec![
+            vec!["0", "Pedro", "Pascal", "1996-07-28", "The Last of Us"],
+            vec!["1", "Belle", "Ramsey", "1991-09-17", "The Last of Us"],
+            vec!["2", "Scott", "Shepherd", "1990-04-20", "The Last of Us"],
+            vec!["3", "Nick", "Offerman", "1970-06-26", "The Last of Us"]
+        ];
+        let expected_num_records = 4;
+        let expected_num_fields = 5;
+        assert_eq!(table.push_rows(&records), Ok(()));
+        assert_eq!(table.num_records(), expected_num_records);
+        assert_eq!(table.num_fields(), expected_num_fields);
+        assert_eq!(
+            format!("{}", table), 
+            "([[\"0\", \"Pedro\", \"Pascal\", \"1996-07-28\", \"The Last of Us\"], [\"1\", \"Belle\", \"Ramsey\", \"1991-09-17\", \"The Last of Us\"], [\"2\", \"Scott\", \"Shepherd\", \"1990-04-20\", \"The Last of Us\"], [\"3\", \"Nick\", \"Offerman\", \"1970-06-26\", \"The Last of Us\"]], 4, 5)"
+        );
     }
 }

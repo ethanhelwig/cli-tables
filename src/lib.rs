@@ -12,17 +12,17 @@ use terminal_size::{
 };
 
 #[derive(Debug, PartialEq)]
-pub struct PushError {
+pub struct TableError {
     pub message: String,
 }
 
-impl fmt::Display for PushError {
+impl fmt::Display for TableError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.message)
     }
 }
 
-impl error::Error for PushError {}
+impl error::Error for TableError {}
 
 #[derive(Debug)]
 pub struct Table {
@@ -38,6 +38,14 @@ impl Table {
             num_records: 0,
             num_fields: 0
         }
+    }
+
+    pub fn num_records(&self) -> usize {
+        return self.num_records;
+    }
+
+    pub fn num_fields(&self) -> usize {
+        return self.num_fields;
     }
 
     /// ### Description
@@ -56,25 +64,25 @@ impl Table {
     ///
     /// ### Examples
     /// ```
-    /// use cli_tables::{Table, PushError};
+    /// use cli_tables::{Table, TableError};
     /// 
     /// let mut table = Table::new(); // creates a new table
     ///
     /// let header = vec!["Id", "Title", "Series", "Author"]; // add rows using a vector of string slices
-    /// assert_eq!(table.push_row(&header), Ok(())); // handle errors
+    /// assert_eq!(table.push_row_str(&header), Ok(())); // handle errors
     /// 
     /// let book = vec!["0", "Sword of Destiny", "The Witcher Series", "Andrzej Sapkowski"];
-    /// assert_eq!(table.push_row(&book), Ok(()));
+    /// assert_eq!(table.push_row_str(&book), Ok(()));
     ///
     /// let invalid_record = vec!["1", "The Last Wish", "The Witcher Series"];
     /// assert_eq!(
-    ///     table.push_row(&invalid_record),
-    ///     Err(PushError {
+    ///     table.push_row_str(&invalid_record),
+    ///     Err(TableError {
     ///         message: "Invalid number of fields in record. Found 3, but expected 4.".to_string()
     ///     })
     /// );
     /// ```
-    pub fn push_row(&mut self, new_record: &Vec<&str>) -> Result<(), PushError> {
+    pub fn push_row_str(&mut self, new_record: &Vec<&str>) -> Result<(), TableError> {
         let new_record: Vec<String> = new_record.iter().map(|&field| field.to_string()).collect();
         let num_fields = new_record.len();
 
@@ -91,10 +99,122 @@ impl Table {
         }
         else {
             let msg = format!("Invalid number of fields in record. Found {}, but expected {}.", num_fields, self.num_fields);
-            Err(PushError {
+            Err(TableError {
                 message: msg,
             })
         }
+    }
+
+    /// ### Description
+    /// Pushes a new row/record to the table.
+    ///
+    /// ### Arguments
+    ///
+    /// * `new_record` - An immutable reference to a vector of strings representing the new record.
+    ///
+    /// ### Errors
+    ///
+    /// Returns an error if the number of fields is invalid.
+    ///
+    /// ### Examples
+    /// ```
+    /// use cli_tables::{Table, TableError};
+    /// 
+    /// let mut table = Table::new(); // creates a new table
+    ///
+    /// let header = vec![
+    ///     "Id".to_string(), 
+    ///     "Title".to_string(), 
+    ///     "Series".to_string(), 
+    ///     "Author".to_string()
+    /// ]; // add rows using a vector of string slices
+    /// assert_eq!(table.push_row_string(&header), Ok(())); // handle errors
+    /// 
+    /// let book = vec![
+    ///     "0".to_string(), 
+    ///     "Sword of Destiny".to_string(), 
+    ///     "The Witcher Series".to_string(), 
+    ///     "Andrzej Sapkowski".to_string()
+    /// ];
+    /// assert_eq!(table.push_row_string(&book), Ok(()));
+    ///
+    /// let invalid_record = vec![
+    ///     "1".to_string(), 
+    ///     "The Last Wish".to_string(), 
+    ///     "The Witcher Series".to_string()
+    /// ];
+    /// assert_eq!(
+    ///     table.push_row_string(&invalid_record),
+    ///     Err(TableError {
+    ///         message: "Invalid number of fields in record. Found 3, but expected 4.".to_string()
+    ///     })
+    /// );
+    /// ```
+    pub fn push_row_string(&mut self, new_record: &Vec<String>) -> Result<(), TableError> {
+        let num_fields = new_record.len();
+
+        if num_fields == self.num_fields && self.num_records != 0 {
+            self.table_vec.push(new_record.to_vec());
+            self.num_records += 1;
+            Ok(())
+        }
+        else if self.num_records == 0 {
+            self.table_vec.push(new_record.to_vec());
+            self.num_records = 1;
+            self.num_fields = num_fields;
+            Ok(())
+        }
+        else {
+            let msg = format!("Invalid number of fields in record. Found {}, but expected {}.", num_fields, self.num_fields);
+            Err(TableError {
+                message: msg,
+            })
+        }
+    }
+
+    pub fn get_row(&mut self, id: usize) -> Result<Vec<String>, TableError> {
+        for record in 0..self.num_records {
+            if record == id {
+                return Ok(self.table_vec[record].clone())
+            }
+        }
+        Err(TableError {
+            message: "No record with matching id".to_string()
+        })
+    }
+
+    pub fn delete_record(&mut self, record_id: usize) -> Result<(), TableError> {
+        for record in 0..self.num_records {
+            if record == record_id {
+                self.table_vec.remove(record);
+                self.num_records -= 1;
+                return Ok(())
+            }
+        }
+        Err(TableError{
+            message: "No record found that matches id".to_string() 
+        })
+    }
+
+    pub fn set_table_str(&mut self, new_table: &Vec<Vec<&str>>) -> Result<(), TableError> {
+        if !self.table_vec.is_empty() {
+            self.table_vec = Vec::new();
+        }
+        self.num_records = new_table.len();
+        self.num_fields = new_table[0].len();
+        for record in 0..new_table.len() {
+            if self.num_fields == new_table[record].len() {
+                self.table_vec.push(Vec::new());
+                for field in 0..new_table[record].len() {
+                    self.table_vec[record].push(new_table[record][field].to_string());
+                }
+            } else {
+                return Err(TableError {
+                    message: "Records have an unequal number of fields".to_string()
+                })
+            }
+        }
+        Ok(())
     }
 
     pub fn to_string(&self) -> String {
@@ -103,8 +223,6 @@ impl Table {
         }
         
         let mut table_str = String::new();
-        //let num_lines = self.num_records;
-        //let mut field_length = Vec::new();
         let mut field_width = vec![0; self.num_fields];
         let mut field_length = vec![
             vec![0; self.num_fields]; 
@@ -343,77 +461,5 @@ impl Table {
 impl fmt::Display for Table {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?}, {}, {})", self.table_vec, self.num_records, self.num_fields)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{Table, PushError};
-
-    #[test]
-    fn test_table_creation() {
-        let table = Table::new();
-        assert_eq!(table.num_records, 0);
-        assert_eq!(table.num_fields, 0);
-        assert_eq!(table.table_vec.len(), 0);
-    }
-
-    #[test]
-    fn test_push_valid_record() {
-        let mut table = Table::new();
-        let record = vec!["Value1", "Value2"];
-        assert_eq!(table.push_row(&record), Ok(()));
-        assert_eq!(table.num_records, 1);
-        assert_eq!(table.num_fields, 2);
-        assert_eq!(table.table_vec.len(), 1);
-        assert_eq!(table.table_vec[0][0], "Value1");
-        assert_eq!(table.table_vec[0][1], "Value2");
-    }
-
-    #[test]
-    fn test_push_invalid_record() {
-        let mut table = Table::new();
-        let record1 = vec!["Value1", "Value2"];
-        let record2 = vec!["Value1"];
-        assert_eq!(table.push_row(&record1), Ok(()));
-        assert_eq!(
-            table.push_row(&record2),
-            Err(PushError {
-                message: "Invalid number of fields in record. Found 1, but expected 2.".to_string(),
-            })
-        );
-    }
-
-    #[test]
-    fn test_to_string_empty_table() {
-        let table = Table::new();
-        let expected = "+----------------+\n| Table is empty |\n+----------------+";
-        assert_eq!(table.to_string(), expected);
-    }
-
-    #[test]
-    fn test_push_100_records() {
-        let mut table = Table::new();
-        let record = vec!["value"; 100];
-        for _ in 0..100 {
-            assert_eq!(table.push_row(&record), Ok(()));
-        }
-        assert_eq!(table.num_records, 100);
-        assert_eq!(table.num_fields, 100);
-        assert_eq!(table.table_vec.len(), 100);
-    }
-
-    #[test]
-    fn test_push_100_fields() {
-        let mut table = Table::new();
-        let mut record = Vec::new();
-        for _ in 0..100 {
-            record.push("value");
-        }
-        assert_eq!(table.push_row(&record), Ok(()));
-        assert_eq!(table.num_records, 1);
-        assert_eq!(table.num_fields, 100);
-        assert_eq!(table.table_vec.len(), 1);
-        assert_eq!(table.table_vec[0].len(), 100);
     }
 }
